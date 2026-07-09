@@ -8,4 +8,4 @@
 //   const API_BASE_URL = "https://<your-function-app>.azurewebsites.net/api";
 // ============================================================================
 
-const API_BASE_URL = "https://fn-supplychain-backend.azurewebsites.net/api";
+const API_BASE_URL = "https://fn-supplychain-backend-fch6dpd5crctaecf.azurewebsites.net/api";
