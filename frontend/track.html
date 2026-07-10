@@ -5,9 +5,47 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Track Shipment | Supply Chain Transparency Platform</title>
   <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* Timeline Visual Components Design Overrides */
+    .timeline-container {
+      position: relative;
+      margin-top: 24px;
+      padding-left: 24px;
+      border-left: 2px solid var(--border-light);
+    }
+    .timeline-item {
+      position: relative;
+      margin-bottom: 24px;
+    }
+    .timeline-item:last-child {
+      margin-bottom: 0;
+    }
+    .timeline-marker {
+      position: absolute;
+      left: -31px;
+      top: 4px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background-color: var(--primary-blue);
+      border: 2px solid var(--bg-surface);
+      box-shadow: 0 0 0 2px var(--primary-blue);
+    }
+    .timeline-item.delivered .timeline-marker {
+      background-color: var(--status-delivered-text);
+      box-shadow: 0 0 0 2px #bbf7d0;
+    }
+    .timeline-content {
+      background-color: #fafbfc;
+      border: 1px solid var(--border-light);
+      border-radius: 8px;
+      padding: 16px;
+    }
+  </style>
 </head>
 <body>
 
+  <!-- Top Navigation Header Bar -->
   <header class="topnav">
     <div class="brand"><span class="dot"></span> Supply Chain Transparency</div>
     <nav>
@@ -19,62 +57,205 @@
     </nav>
   </header>
 
+  <!-- Main Content Layout Framework -->
   <main class="page">
+    
     <div class="page-header">
-      <h1>Track Shipment</h1>
-      <p>Look up a product to see its checkpoint history. Manual entry below simulates what an IoT device will report automatically once connected.</p>
+      <h1>Shipment Tracking Gateway</h1>
+      <p>Audit immutable routing histories, trace asset movements, and append dynamic sensor data checkpoints to the ledger network.</p>
     </div>
 
-    <div class="card" style="margin-bottom: 20px;">
-      <label for="lookupProductId">Product ID</label>
-      <div style="display:flex; gap:10px;">
-        <input type="text" id="lookupProductId" placeholder="PRD-001">
-        <button class="btn btn-secondary" id="lookupBtn" style="white-space:nowrap;">Load history</button>
-      </div>
-    </div>
-
+    <!-- Layout Grid Configured for Multi-Column Split Frameworks -->
     <div class="grid grid-2">
-      <div class="card">
-        <h2>Checkpoint history</h2>
-        <div id="shipmentHistory"><p class="empty-state">Enter a product ID above to load its journey.</p></div>
+      
+      <!-- Column 1: Asset Lookup & Sleek Cryptographic Journey Timeline -->
+      <div class="card" style="display: flex; flex-direction: column;">
+        <h2>Checkpoint Audit History</h2>
+        
+        <!-- Search Input Bar -->
+        <form id="trackSearchForm" onsubmit="handleTrackingLookup(event)">
+          <div style="display: flex; gap: 12px; align-items: flex-end;">
+            <div class="form-group" style="margin-bottom: 0; flex-grow: 1;">
+              <label for="searchProductId">Target Product ID</label>
+              <input type="text" id="searchProductId" placeholder="Enter Product ID to query..." required>
+            </div>
+            <button type="submit" class="btn" style="height: 42px;">Fetch History</button>
+          </div>
+        </form>
+
+        <!-- Dynamic Timeline Output Target -->
+        <div id="trackingTimelineTarget" style="margin-top: 20px; flex-grow: 1;">
+          <p class="empty-state">Enter a valid cryptographic product identifier to load its verification history timeline.</p>
+        </div>
       </div>
 
+      <!-- Column 2: Advanced Manual Checkpoint / IoT Simulated Sensor Input Form -->
       <div class="card">
-        <h2>Log a checkpoint (manual / simulated sensor)</h2>
-        <div id="formNotice"></div>
-        <form id="shipmentForm">
-          <label for="location">Location</label>
-          <input type="text" id="location" placeholder="Chennai Port Warehouse">
+        <h2>Log Node Checkpoint (Manual / IoT Sensor)</h2>
+        <form id="addCheckpointForm" onsubmit="handleCheckpointSubmission(event)">
+          
+          <div class="form-group">
+            <label for="productId">Product ID</label>
+            <input type="text" id="productId" placeholder="Example: PRD-001" required>
+          </div>
 
-          <div class="form-row">
-            <div>
-              <label for="latitude">Latitude</label>
-              <input type="number" step="0.000001" id="latitude" placeholder="13.0827">
+          <div class="form-group" style="margin-top: 4px;">
+            <label for="location">Location Node Name</label>
+            <input type="text" id="location" placeholder="Example: Hyderabad Warehouse" required>
+          </div>
+
+          <!-- Grid Row for Coordinates Grid Alignment -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 4px;">
+            <div class="form-group">
+              <label for="latitude">Latitude Coordinate</label>
+              <input type="text" id="latitude" placeholder="Example: 17.3850">
             </div>
-            <div>
-              <label for="longitude">Longitude</label>
-              <input type="number" step="0.000001" id="longitude" placeholder="80.2707">
+
+            <div class="form-group">
+              <label for="longitude">Longitude Coordinate</label>
+              <input type="text" id="longitude" placeholder="Example: 78.4867">
             </div>
           </div>
 
-          <label for="temperature">Temperature (°C, optional sensor reading)</label>
-          <input type="number" step="0.1" id="temperature" placeholder="24.5">
+          <!-- Sensor reading parameter configuration -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 4px;">
+            <div class="form-group">
+              <label for="temperature">Temperature (°C Sensor)</label>
+              <input type="text" id="temperature" placeholder="Example: 4.5">
+            </div>
 
-          <label for="status">Status at this checkpoint</label>
-          <select id="status">
-            <option value="Manufactured">Manufactured</option>
-            <option value="In Transit" selected>In Transit</option>
-            <option value="Delivered">Delivered</option>
-          </select>
+            <div class="form-group">
+              <label for="status">Current Status State</label>
+              <select id="status" required>
+                <option value="" disabled selected>Select active status...</option>
+                <option value="Packed">Packed</option>
+                <option value="In Transit">In Transit</option>
+                <option value="Delivered">Delivered</option>
+              </select>
+            </div>
+          </div>
 
-          <button type="submit" class="btn btn-primary btn-block">Log checkpoint</button>
+          <!-- Action Controls Panel -->
+          <div style="margin-top: 16px; display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid var(--border-light); padding-top: 16px;">
+            <button type="button" class="btn btn-secondary-outline" onclick="document.getElementById('addCheckpointForm').reset()">Clear Form</button>
+            <button type="submit" class="btn">Log Checkpoint Entry</button>
+          </div>
         </form>
+        <div id="formFeedback" style="margin-top: 16px;"></div>
       </div>
+
     </div>
   </main>
 
+  <!-- Core Script Architectures -->
   <script src="js/config.js"></script>
   <script src="js/api.js"></script>
-  <script src="js/track.js"></script>
+  <script>
+    // Safe Status badge utility layout calculator
+    function statusBadgeClass(status) {
+      const s = (status || "").toLowerCase();
+      if (s === "delivered") return "badge-success";
+      if (s === "in transit") return "badge-info";
+      return "badge-secondary";
+    }
+
+    // Interactive safe journey lookup pipeline matching backend route specs
+    async function handleTrackingLookup(event) {
+      if (event) event.preventDefault();
+      const productId = document.getElementById("searchProductId").value.trim();
+      const timelineTarget = document.getElementById("trackingTimelineTarget");
+
+      if (!productId) return;
+      timelineTarget.innerHTML = '<div class="empty-state">Polling ledger block historical indices...</div>';
+
+      try {
+        // Direct integration alignment: reads the specific shipment events history route path
+        const response = await api.get(`/shipments/${productId}`);
+        const events = response.events || [];
+
+        if (events.length === 0) {
+          timelineTarget.innerHTML = `<div class="empty-state">No block checkpoints tracked yet for identifier: <strong class="mono">${productId}</strong></div>`;
+          return;
+        }
+
+        // Generate clean structural chronological layout list components matching your design style
+        const items = events.map(ev => {
+          const isDelivered = (ev.Status || "").toLowerCase() === 'delivered';
+          const formattedTime = ev.RecordedAt ? new Date(ev.RecordedAt).toLocaleString() : 'Timestamp unavailable';
+          
+          return `
+            <div class="timeline-item ${isDelivered ? 'delivered' : ''}">
+              <div class="timeline-marker"></div>
+              <div class="timeline-content">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                  <strong style="font-size: 1rem; color: #0f172a;">${ev.Location || "Unspecified Node Location"}</strong>
+                  <span class="badge ${statusBadgeClass(ev.Status)}">${ev.Status || "Tracked"}</span>
+                </div>
+                <div class="supplier-item-meta" style="margin-top: 4px; font-size: 0.85rem;">
+                  <div><span class="label-meta" style="min-width: 90px;">Coordinates:</span> <span>Lat: ${ev.Latitude || 'N/A'} | Lon: ${ev.Longitude || 'N/A'}</span></div>
+                  <div><span class="label-meta" style="min-width: 90px;">Temperature:</span> <span style="font-weight: 600; color: #334155;">${ev.Temperature != null ? ev.Temperature + ' °C' : 'N/A'}</span></div>
+                  <div><span class="label-meta" style="min-width: 90px;">Ledger Sync:</span> <span class="mono" style="font-size: 0.75rem;">${formattedTime}</span></div>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join("");
+
+        timelineTarget.innerHTML = `<div class="timeline-container">${items}</div>`;
+
+      } catch (error) {
+        console.error(error);
+        timelineTarget.innerHTML = `<div class="notice-error">Validation query dropped: ${error.message || '404'}. Check endpoint settings.</div>`;
+      }
+    }
+
+    // Intercept standard checkpoint form compilation payload loops safely
+    async function handleCheckpointSubmission(event) {
+      event.preventDefault();
+      const feedback = document.getElementById("formFeedback");
+      const targetId = document.getElementById("productId").value.trim();
+      
+      const payload = {
+        productId: targetId,
+        location: document.getElementById("location").value.trim(),
+        latitude: document.getElementById("latitude").value ? parseFloat(document.getElementById("latitude").value) : null,
+        longitude: document.getElementById("longitude").value ? parseFloat(document.getElementById("longitude").value) : null,
+        temperature: document.getElementById("temperature").value ? parseFloat(document.getElementById("temperature").value) : null,
+        status: document.getElementById("status").value
+      };
+
+      feedback.innerHTML = '<div style="color: var(--text-muted); font-size: 0.9rem;">Appending transaction block state...</div>';
+
+      try {
+        // Direct integration alignment: hooks cleanly with your addShipmentEvent POST router path
+        const response = await api.post("/shipments", payload);
+        
+        if (response.success) {
+          feedback.innerHTML = `<div class="badge badge-success" style="display: block; text-align: center; padding: 10px; font-weight:600;">✅ Transaction Block Validated & Written!</div>`;
+          
+          // Seed search tracking bar with the active target block item to show live update timeline instantly
+          document.getElementById("searchProductId").value = targetId;
+          await handleTrackingLookup();
+          
+          document.getElementById("addCheckpointForm").reset();
+        } else {
+          feedback.innerHTML = `<div class="notice-error">${response.message || "Failed to commit record entry."}</div>`;
+        }
+      } catch (error) {
+        console.error(error);
+        feedback.innerHTML = `<div class="notice-error">Transaction write drop error: ${error.message}</div>`;
+      }
+    }
+
+    // URL parameter parsing initialization runner support
+    document.addEventListener("DOMContentLoaded", () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const idParam = urlParams.get('id');
+      if (idParam) {
+        document.getElementById("searchProductId").value = idParam;
+        handleTrackingLookup();
+      }
+    });
+  </script>
 </body>
 </html>
