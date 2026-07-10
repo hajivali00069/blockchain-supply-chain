@@ -71,16 +71,18 @@
     async function loadDashboard() {
       const recentEl = document.getElementById("recentProducts");
       try {
+        // Aligned directly to backend routing specs: /products & /getSuppliers
         const [productsRes, suppliersRes] = await Promise.all([
           api.get("/products"),
-          api.get("/suppliers")
+          api.get("/getSuppliers")
         ]);
 
-        // Fallback checks to handle direct array responses or wrapped object payloads
-        const products = Array.isArray(productsRes) ? productsRes : (productsRes.products || []);
-        const suppliers = Array.isArray(suppliersRes) ? suppliersRes : (suppliersRes.suppliers || []);
+        // Handled format variance: products wraps data in an object, suppliers returns raw array
+        const products = productsRes.products || [];
+        const suppliers = Array.isArray(suppliersRes) ? suppliersRes : [];
         const delivered = products.filter(p => (p.Status || "").toLowerCase() === "delivered");
 
+        // Write metrics data variables out into HTML nodes safely
         document.getElementById("statProducts").textContent = products.length;
         document.getElementById("statSuppliers").textContent = suppliers.length;
         document.getElementById("statDelivered").textContent = delivered.length;
@@ -90,11 +92,11 @@
           return;
         }
 
-        // Updated p.ProductName to handle both 'p.Name' and 'p.ProductName' fallback schemas
+        // Built out overview table checking for matching schema property mappings (ProductName)
         const rows = products.slice(0, 5).map(p => `
           <tr>
-            <td class="mono">${p.ProductId || p.id}</td>
-            <td>${p.Name || p.ProductName || "Unnamed Product"}</td>
+            <td class="mono">${p.ProductId || "—"}</td>
+            <td>${p.ProductName || p.Name || "Unnamed Product"}</td>
             <td><span class="badge ${statusBadgeClass(p.Status)}">${p.Status || "Registered"}</span></td>
           </tr>
         `).join("");
