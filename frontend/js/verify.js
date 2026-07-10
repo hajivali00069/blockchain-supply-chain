@@ -12,8 +12,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             try {
-                // CHANGED: sending parameter as 'id' instead of 'productId'
-                const response = await fetch(`${API_BASE_URL}/verifyProduct?id=${productId}`);
+                // FIXED: URL format now matches the backend route "verify/{productId}"
+                const response = await fetch(`${API_BASE_URL}/verify/${productId}`);
                 
                 if (response.status === 404) {
                     resultContainer.innerHTML = `
@@ -49,6 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <p><strong>Product ID:</strong> ${data.product.ProductId}</p>
                             <p><strong>Product Name:</strong> ${data.product.Name}</p>
                             <p><strong>Batch Number:</strong> ${data.product.BatchNumber}</p>
+                            <p><strong>Total Verified Ledger Events:</strong> ${data.verifiedEvents}</p>
                             <hr style="margin: 20px 0;">
                             <h6>📋 Supply Chain Journey Ledger:</h6>
                             <div class="mt-3">${timelineHtml}</div>
