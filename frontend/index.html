@@ -8,6 +8,7 @@
 </head>
 <body>
 
+  <!-- Top Navigation Header Bar -->
   <header class="topnav">
     <div class="brand"><span class="dot"></span> Supply Chain Transparency</div>
     <nav>
@@ -19,48 +20,66 @@
     </nav>
   </header>
 
+  <!-- Main Content Layout Framework -->
   <main class="page">
-    <div class="page-header">
-      <h1>Dashboard</h1>
-      <p>Overview of products, suppliers, and ledger activity.</p>
+    
+    <!-- Title Block Combined with Right-Aligned Platform Actions -->
+    <div class="dashboard-header-flex">
+      <div class="page-header">
+        <h1>Azure Blockchain Supply Chain Transparency Platform</h1>
+        <p>Track products securely from supplier to customer.</p>
+      </div>
+      <div class="dashboard-action-buttons">
+        <a href="products.html" class="btn btn-secondary-outline">Add Product</a>
+        <a href="verify.html" class="btn">Verify Product</a>
+      </div>
     </div>
 
-    <div class="grid grid-3" style="margin-bottom: 24px;">
+    <!-- 4-Column Balanced Stats Row Layout -->
+    <div class="grid grid-4" style="margin-bottom: 24px;">
       <div class="card stat-card">
         <div class="value" id="statProducts">–</div>
-        <div class="label">Registered products</div>
+        <div class="label">Total Products</div>
       </div>
       <div class="card stat-card">
-        <div class="value" id="statSuppliers">–</div>
-        <div class="label">Active suppliers</div>
+        <div class="value" id="statTransit">–</div>
+        <div class="label">In Transit</div>
       </div>
       <div class="card stat-card">
         <div class="value" id="statDelivered">–</div>
-        <div class="label">Delivered products</div>
+        <div class="label">Delivered</div>
+      </div>
+      <div class="card stat-card">
+        <div class="value" id="statSuppliers">–</div>
+        <div class="label">Active Suppliers</div>
       </div>
     </div>
 
+    <!-- Lower Panels Split View -->
     <div class="grid grid-2">
       <div class="card">
-        <h2>Recent products</h2>
-        <div id="recentProducts"><p class="empty-state">Loading…</p></div>
+        <h2>Recent Shipment Updates</h2>
+        <div id="recentProducts">
+          <p class="empty-state">Loading ledger telemetry updates...</p>
+        </div>
       </div>
+      
       <div class="card">
         <h2>Getting started</h2>
-        <p style="color: var(--muted); font-size: 0.9rem;">
-          1. Add a supplier on the <a href="suppliers.html">Suppliers</a> page.<br><br>
-          2. Register a product against that supplier on the <a href="products.html">Products</a> page — this also writes the first ledger entry.<br><br>
-          3. Log shipment checkpoints on the <a href="track.html">Track Shipment</a> page as the product moves.<br><br>
-          4. Anyone can confirm authenticity on the public <a href="verify.html">Verify Product</a> page.
+        <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 0; line-height: 1.6;">
+          1. Onboard your primary vendor distributions on the <a href="suppliers.html">Suppliers</a> management tab.<br><br>
+          2. Register specific inventory line instances against those vendor IDs on the <a href="products.html">Products</a> configuration catalog.<br><br>
+          3. Process cryptographic ledger checkpoint transactions at transfer nodes through the <a href="track.html">Track Shipment</a> logging gateway.<br><br>
+          4. Consumers and validation endpoints can instantly confirm item provenance using the public verification interface tool on the <a href="verify.html">Verify Product</a> dashboard utility.
         </p>
       </div>
     </div>
   </main>
 
+  <!-- Core JavaScript Framework Drivers -->
   <script src="js/config.js"></script>
   <script src="js/api.js"></script>
   <script>
-    // Helper function to return badge styles safely without crashing
     function statusBadgeClass(status) {
       const s = (status || "").toLowerCase();
       if (s === "delivered") return "badge-success";
@@ -71,48 +90,58 @@
     async function loadDashboard() {
       const recentEl = document.getElementById("recentProducts");
       try {
-        // Aligned directly to backend routing specs: /products & /getSuppliers
+        // Poll API routers concurrently
         const [productsRes, suppliersRes] = await Promise.all([
           api.get("/products"),
           api.get("/getSuppliers")
         ]);
 
-        // Handled format variance: products wraps data in an object, suppliers returns raw array
         const products = productsRes.products || [];
         const suppliers = Array.isArray(suppliersRes) ? suppliersRes : [];
+        
+        // Split totals using status properties safely
         const delivered = products.filter(p => (p.Status || "").toLowerCase() === "delivered");
+        const inTransit = products.filter(p => (p.Status || "").toLowerCase() === "in transit");
 
-        // Write metrics data variables out into HTML nodes safely
+        // Set layout display node text content numbers
         document.getElementById("statProducts").textContent = products.length;
-        document.getElementById("statSuppliers").textContent = suppliers.length;
+        document.getElementById("statTransit").textContent = inTransit.length;
         document.getElementById("statDelivered").textContent = delivered.length;
+        document.getElementById("statSuppliers").textContent = suppliers.length;
 
         if (products.length === 0) {
-          recentEl.innerHTML = `<p class="empty-state">No products yet. Add one on the Products page.</p>`;
+          recentEl.innerHTML = `<p class="empty-state">No tracking units registered. Create products to display logs.</p>`;
           return;
         }
 
-        // Built out overview table checking for matching schema property mappings (ProductName)
+        // Build data presentation row matrices checking for explicit fallback handles
         const rows = products.slice(0, 5).map(p => `
           <tr>
             <td class="mono">${p.ProductId || "—"}</td>
-            <td>${p.ProductName || p.Name || "Unnamed Product"}</td>
+            <td style="font-weight: 600;">${p.ProductName || p.Name || "Unnamed Product"}</td>
             <td><span class="badge ${statusBadgeClass(p.Status)}">${p.Status || "Registered"}</span></td>
           </tr>
         `).join("");
 
         recentEl.innerHTML = `
           <table>
-            <thead><tr><th>Product ID</th><th>Name</th><th>Status</th></tr></thead>
+            <thead>
+              <tr>
+                <th>Product ID</th>
+                <th>Product Name</th>
+                <th>Status</th>
+              </tr>
+            </thead>
             <tbody>${rows}</tbody>
           </table>
         `;
       } catch (err) {
         console.error(err);
-        recentEl.innerHTML = `<div class="notice notice-error" style="color: #721c24; background-color: #f8d7da; padding: 10px; border-radius: 4px;">Could not reach the API: Request failed (${err.message || '404'}). Is the backend running?</div>`;
+        recentEl.innerHTML = `<div class="notice notice-error">Telemetry error: ${err.message || '404'}. Check server connection frameworks.</div>`;
         document.getElementById("statProducts").textContent = "–";
-        document.getElementById("statSuppliers").textContent = "–";
+        document.getElementById("statTransit").textContent = "–";
         document.getElementById("statDelivered").textContent = "–";
+        document.getElementById("statSuppliers").textContent = "–";
       }
     }
 
