@@ -1,66 +1,75 @@
-document.addEventListener("DOMContentLoaded", () => {
-  // Matched exactly to your HTML element IDs
-  const form = document.getElementById("supplierForm");
-  const supplierList = document.getElementById("supplierList");
-  const noticeContainer = document.getElementById("formNotice");
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Suppliers | Supply Chain Transparency Platform</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
 
-  // Load existing suppliers when page opens
-  async function loadSuppliers() {
-    try {
-      const suppliers = await api.get("/getSuppliers");
-      
-      if (!suppliers || suppliers.length === 0) {
-        supplierList.innerHTML = '<p class="text-muted">No suppliers registered yet.</p>';
-        return;
-      }
+  <header class="topnav">
+    <div class="brand"><span class="dot"></span> Supply Chain Transparency</div>
+    <nav>
+      <a href="index.html">Dashboard</a>
+      <a href="products.html">Products</a>
+      <a href="suppliers.html" class="active">Suppliers</a>
+      <a href="track.html">Track Shipment</a>
+      <a href="verify.html">Verify Product</a>
+    </nav>
+  </header>
 
-      supplierList.innerHTML = suppliers.map(s => `
-        <div class="card mb-3">
-          <div class="card-body">
-            <h5 class="card-title">${s.SupplierName} <span class="badge bg-secondary text-capitalize">${s.SupplierType}</span></h5>
-            <p class="card-text mb-1"><strong>ID:</strong> ${s.SupplierId}</p>
-            <p class="card-text mb-1"><strong>Email:</strong> ${s.Email || '-'}</p>
-            <p class="card-text mb-1"><strong>Phone:</strong> ${s.Phone || '-'}</p>
-            <p class="card-text mb-0"><strong>Address:</strong> ${s.Address || '-'}</p>
+  <main class="page">
+    <div class="page-header">
+      <h1>Suppliers</h1>
+      <p>Onboard suppliers so their products can be registered against them.</p>
+    </div>
+
+    <div class="grid grid-2">
+      <div class="card">
+        <h2>Add a supplier</h2>
+        <div id="formNotice"></div>
+        <form id="supplierForm">
+          <label for="supplierId">Supplier ID</label>
+          <input type="text" id="supplierId" placeholder="SUP-001" required>
+
+          <label for="supplierName">Supplier name</label>
+          <input type="text" id="supplierName" placeholder="GreenLeaf Organics" required>
+
+          <div class="form-row">
+            <div>
+              <label for="email">Email</label>
+              <input type="email" id="email" placeholder="contact@example.com" required>
+            </div>
+            <div>
+              <label for="phone">Phone</label>
+              <input type="tel" id="phone" placeholder="9990001111" required>
+            </div>
           </div>
-        </div>
-      `).join("");
-    } catch (error) {
-      // Safely check if notice container exists before updating
-      if (noticeContainer) {
-        showNotice(noticeContainer, `Could not load suppliers: ${error.message}`, "error");
-      }
-    }
-  }
 
-  // Handle Form Submission
-  if (form) {
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      
-      const supplierData = {
-        supplierId: document.getElementById("supplierId").value.trim(),
-        supplierName: document.getElementById("supplierName").value.trim(),
-        email: document.getElementById("email").value.trim(),
-        phone: document.getElementById("phone").value.trim(),
-        supplierType: document.getElementById("supplierType").value,
-        address: document.getElementById("address").value.trim()
-      };
+          <label for="supplierType">Supplier type</label>
+          <select id="supplierType" required>
+            <option value="Manufacturer">Manufacturer</option>
+            <option value="Distributor">Distributor</option>
+            <option value="Logistics">Logistics Partner</option>
+          </select>
 
-      try {
-        const result = await api.post("/addSupplier", supplierData);
-        if (noticeContainer) {
-          showNotice(noticeContainer, result.message || "Supplier added successfully!", "success");
-        }
-        form.reset();
-        loadSuppliers();
-      } catch (error) {
-        if (noticeContainer) {
-          showNotice(noticeContainer, `Request failed: ${error.message}`, "error");
-        }
-      }
-    });
-  }
+          <label for="address">Address</label>
+          <textarea id="address" rows="2" placeholder="12 Farm Road, Anantapur, IN" required></textarea>
 
-  loadSuppliers();
-});
+          <button type="submit" class="btn btn-primary btn-block">Add supplier</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>All suppliers</h2>
+        <div id="supplierList"><p class="empty-state">Loading…</p></div>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/suppliers.js"></script>
+</body>
+</html>
