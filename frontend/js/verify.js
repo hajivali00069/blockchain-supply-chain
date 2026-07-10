@@ -12,8 +12,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             try {
-                // Call your Azure Function API via your config/api helper
-                const response = await fetch(`${API_BASE_URL}/verifyProduct?productId=${productId}`);
+                // CHANGED: sending parameter as 'id' instead of 'productId'
+                const response = await fetch(`${API_BASE_URL}/verifyProduct?id=${productId}`);
                 
                 if (response.status === 404) {
                     resultContainer.innerHTML = `
@@ -25,7 +25,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const data = await response.json();
                 
-                // Render the Verification Certificate Card
                 let timelineHtml = '';
                 if (data.history && data.history.length > 0) {
                     data.history.forEach(event => {
