@@ -3,11 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Products | Supply Chain Transparency Platform</title>
+  <title>Products Management | Supply Chain Transparency Platform</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
+  <!-- Top Navigation Header Bar -->
   <header class="topnav">
     <div class="brand"><span class="dot"></span> Supply Chain Transparency</div>
     <nav>
@@ -19,58 +20,172 @@
     </nav>
   </header>
 
+  <!-- Main Content Layout Framework -->
   <main class="page">
+    
     <div class="page-header">
-      <h1>Products</h1>
-      <p>Register a product to create its first immutable ledger entry, then track it below.</p>
+      <h1>Products Engine Registry</h1>
+      <p>Configure cryptographic asset identifiers, write genesis supply block attributes, and view global inventory status.</p>
     </div>
 
+    <!-- Layout Grid Configured for Multi-Column Split Frameworks -->
     <div class="grid grid-2">
+      
+      <!-- Panel 1: Advanced Multicolumn Registration Interface Form -->
       <div class="card">
-        <h2>Register a product</h2>
-        <div id="formNotice"></div>
-        <form id="productForm">
-          <label for="productId">Product ID</label>
-          <input type="text" id="productId" placeholder="PRD-001" required>
-
-          <label for="productName">Product name</label>
-          <input type="text" id="productName" placeholder="Organic Turmeric Powder" required>
-
-          <div class="form-row">
-            <div>
-              <label for="batchNumber">Batch number</label>
-              <input type="text" id="batchNumber" placeholder="BATCH-2026-01" required>
+        <h2>Register New Asset</h2>
+        <form id="addProductForm" onsubmit="handleProductRegistration(event)">
+          
+          <!-- Structured Form Property Rows Split Grid -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="form-group">
+              <label for="productId">Product ID</label>
+              <input type="text" id="productId" placeholder="Example: PRD-001" required>
             </div>
-            <div>
-              <label for="supplierId">Supplier ID</label>
-              <input type="text" id="supplierId" placeholder="SUP-001" required>
+
+            <div class="form-group">
+              <label for="productName">Product Name</label>
+              <input type="text" id="productName" placeholder="Example: Organic Coffee" required>
             </div>
           </div>
 
-          <div class="form-row">
-            <div>
-              <label for="manufacturingDate">Manufacturing date</label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 4px;">
+            <div class="form-group">
+              <label for="batchNumber">Batch Reference No.</label>
+              <input type="text" id="batchNumber" placeholder="Example: BATCH-2026-01" required>
+            </div>
+
+            <div class="form-group">
+              <label for="supplierId">Associated Supplier ID</label>
+              <input type="text" id="supplierId" placeholder="Example: SUP-011" required>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 4px;">
+            <div class="form-group">
+              <label for="manufacturingDate">Manufacturing Date</label>
               <input type="date" id="manufacturingDate" required>
             </div>
-            <div>
-              <label for="expiryDate">Expiry date</label>
+
+            <div class="form-group">
+              <label for="expiryDate">Expiration Date</label>
               <input type="date" id="expiryDate" required>
             </div>
           </div>
 
-          <button type="submit" class="btn btn-primary btn-block">Register product</button>
+          <!-- Dynamic Interactivity Controls Panel -->
+          <div style="margin-top: 16px; display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid var(--border-light); padding-top: 16px;">
+            <button type="button" class="btn btn-secondary-outline" onclick="document.getElementById('addProductForm').reset()">Clear Form</button>
+            <button type="submit" class="btn">Register Asset & Generate Entry</button>
+          </div>
         </form>
+        <div id="formFeedback" style="margin-top: 16px;"></div>
       </div>
 
-      <div class="card">
-        <h2>All products</h2>
-        <div id="productList"><p class="empty-state">Loading…</p></div>
+      <!-- Panel 2: Interactive Real-Time Data Catalog Grid -->
+      <div class="card" style="display: flex; flex-direction: column;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <h2 style="margin-bottom: 0;">Live Inventory Records Ledger</h2>
+          <span id="catalogCount" class="badge badge-secondary" style="font-size: 0.8rem; padding: 4px 10px;">0 Units</span>
+        </div>
+        
+        <div style="overflow-x: auto; flex-grow: 1;">
+          <table id="productsCatalogTable">
+            <thead>
+              <tr>
+                <th>Product ID</th>
+                <th>Asset Name</th>
+                <th>Supplier ID</th>
+                <th>Active Status</th>
+              </tr>
+            </thead>
+            <tbody id="productsCatalogList">
+              <tr>
+                <td colspan="4" class="empty-state">Loading registered assets...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
+
     </div>
   </main>
 
+  <!-- Core Script Architectures -->
   <script src="js/config.js"></script>
   <script src="js/api.js"></script>
-  <script src="js/products.js"></script>
+  <script>
+    function statusBadgeClass(status) {
+      const s = (status || "").toLowerCase();
+      if (s === "delivered") return "badge-success";
+      if (s === "in transit") return "badge-info";
+      return "badge-secondary";
+    }
+
+    // Dynamic catalog fetching schema processing logic
+    async function fetchProductsCatalog() {
+      const catalogList = document.getElementById("productsCatalogList");
+      const counterNode = document.getElementById("catalogCount");
+      try {
+        const response = await api.get("/products");
+        const products = response.products || [];
+
+        counterNode.textContent = `${products.length} Units`;
+
+        if (products.length === 0) {
+          catalogList.innerHTML = `<tr><td colspan="4" class="empty-state">No recorded units detected within active nodes.</td></tr>`;
+          return;
+        }
+
+        // Mapping row telemetry models with cursor point interactive hooks
+        catalogList.innerHTML = products.map(p => `
+          <tr onclick="window.location.href='verify.html?id=${p.ProductId || p.id}'" style="cursor: pointer;" title="Click to inspect validation ledger hashes">
+            <td class="mono" style="color: var(--primary-blue); font-weight: 600;">${p.ProductId || p.id}</td>
+            <td style="font-weight: 600;">${p.ProductName || p.Name || "Unnamed Asset"}</td>
+            <td class="mono">${p.SupplierId || "—"}</td>
+            <td><span class="badge ${statusBadgeClass(p.Status)}">${p.Status || "Manufactured"}</span></td>
+          </tr>
+        `).join("");
+
+      } catch (error) {
+        console.error(error);
+        catalogList.innerHTML = `<tr><td colspan="4" class="notice-error" style="display: table-cell; text-align: center;">Ledger sync error occurred during node validation.</td></tr>`;
+      }
+    }
+
+    // Intercept event payload loop configurations
+    async function handleProductRegistration(event) {
+      event.preventDefault();
+      const feedback = document.getElementById("formFeedback");
+      
+      const payload = {
+        productId: document.getElementById("productId").value.trim(),
+        productName: document.getElementById("productName").value.trim(),
+        batchNumber: document.getElementById("batchNumber").value.trim(),
+        supplierId: document.getElementById("supplierId").value.trim(),
+        manufacturingDate: document.getElementById("manufacturingDate").value.trim(),
+        expiryDate: document.getElementById("expiryDate").value.trim()
+      };
+
+      feedback.innerHTML = '<div style="color: var(--text-muted); font-size: 0.9rem;">Hashing parameters and writing ledger transactional index...</div>';
+
+      try {
+        const response = await api.post("/products", payload);
+        
+        if (response.success) {
+          feedback.innerHTML = `<div class="badge badge-success" style="display: block; text-align: center; padding: 10px; font-weight:600;">Block Entry Validated & Written Successfully!</div>`;
+          document.getElementById("addProductForm").reset();
+          await fetchProductsCatalog();
+        } else {
+          feedback.innerHTML = `<div class="notice-error">${response.message || "Failed to finalize database write lifecycle."}</div>`;
+        }
+      } catch (error) {
+        console.error(error);
+        feedback.innerHTML = `<div class="notice-error">Transaction write drop error: ${error.message}</div>`;
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", fetchProductsCatalog);
+  </script>
 </body>
 </html>
