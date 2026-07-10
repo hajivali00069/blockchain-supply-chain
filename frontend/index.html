@@ -60,6 +60,14 @@
   <script src="js/config.js"></script>
   <script src="js/api.js"></script>
   <script>
+    // Helper function to return badge styles safely without crashing
+    function statusBadgeClass(status) {
+      const s = (status || "").toLowerCase();
+      if (s === "delivered") return "badge-success";
+      if (s === "in transit") return "badge-info";
+      return "badge-secondary";
+    }
+
     async function loadDashboard() {
       const recentEl = document.getElementById("recentProducts");
       try {
@@ -68,8 +76,9 @@
           api.get("/suppliers")
         ]);
 
-        const products = productsRes.products || [];
-        const suppliers = suppliersRes.suppliers || [];
+        // Fallback checks to handle direct array responses or wrapped object payloads
+        const products = Array.isArray(productsRes) ? productsRes : (productsRes.products || []);
+        const suppliers = Array.isArray(suppliersRes) ? suppliersRes : (suppliersRes.suppliers || []);
         const delivered = products.filter(p => (p.Status || "").toLowerCase() === "delivered");
 
         document.getElementById("statProducts").textContent = products.length;
@@ -81,11 +90,12 @@
           return;
         }
 
+        // Updated p.ProductName to handle both 'p.Name' and 'p.ProductName' fallback schemas
         const rows = products.slice(0, 5).map(p => `
           <tr>
-            <td class="mono">${p.ProductId}</td>
-            <td>${p.ProductName}</td>
-            <td><span class="badge ${statusBadgeClass(p.Status)}">${p.Status}</span></td>
+            <td class="mono">${p.ProductId || p.id}</td>
+            <td>${p.Name || p.ProductName || "Unnamed Product"}</td>
+            <td><span class="badge ${statusBadgeClass(p.Status)}">${p.Status || "Registered"}</span></td>
           </tr>
         `).join("");
 
@@ -96,7 +106,8 @@
           </table>
         `;
       } catch (err) {
-        recentEl.innerHTML = `<div class="notice notice-error">Could not reach the API: ${err.message}. Is the backend running?</div>`;
+        console.error(err);
+        recentEl.innerHTML = `<div class="notice notice-error" style="color: #721c24; background-color: #f8d7da; padding: 10px; border-radius: 4px;">Could not reach the API: Request failed (${err.message || '404'}). Is the backend running?</div>`;
         document.getElementById("statProducts").textContent = "–";
         document.getElementById("statSuppliers").textContent = "–";
         document.getElementById("statDelivered").textContent = "–";
