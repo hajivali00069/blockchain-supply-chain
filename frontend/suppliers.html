@@ -3,11 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Suppliers | Supply Chain Transparency Platform</title>
+  <title>Suppliers Management | Supply Chain Transparency Platform</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
+  <!-- Top Navigation Header Bar -->
   <header class="topnav">
     <div class="brand"><span class="dot"></span> Supply Chain Transparency</div>
     <nav>
@@ -19,57 +20,166 @@
     </nav>
   </header>
 
+  <!-- Main Content Layout Framework -->
   <main class="page">
+    
     <div class="page-header">
-      <h1>Suppliers</h1>
-      <p>Onboard suppliers so their products can be registered against them.</p>
+      <h1>Suppliers Directory</h1>
+      <p>Manage node distributions, register source entities, and inspect active supplier cryptographic profiles.</p>
     </div>
 
+    <!-- Layout Grid Configured for Multi-Column Split Frameworks -->
     <div class="grid grid-2">
+      
+      <!-- Panel 1: Advanced Multicolumn Supplier Registration Interface Form -->
       <div class="card">
-        <h2>Add a supplier</h2>
-        <div id="formNotice"></div>
-        <form id="supplierForm">
-          <label for="supplierId">Supplier ID</label>
-          <input type="text" id="supplierId" placeholder="SUP-001" required>
-
-          <label for="supplierName">Supplier name</label>
-          <input type="text" id="supplierName" placeholder="GreenLeaf Organics" required>
-
-          <div class="form-row">
-            <div>
-              <label for="email">Email</label>
-              <input type="email" id="email" placeholder="contact@example.com" required>
+        <h2>Register Supplier Node</h2>
+        <form id="addSupplierForm" onsubmit="handleSupplierRegistration(event)">
+          
+          <!-- Structured Form Property Rows Split Grid -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="form-group">
+              <label for="supplierId">Supplier ID</label>
+              <input type="text" id="supplierId" placeholder="Example: SUP-011" required>
             </div>
-            <div>
-              <label for="phone">Phone</label>
-              <input type="tel" id="phone" placeholder="9990001111" required>
+
+            <div class="form-group">
+              <label for="supplierName">Supplier Name</label>
+              <input type="text" id="supplierName" placeholder="Example: GreenLeaf Organics" required>
             </div>
           </div>
 
-          <label for="supplierType">Supplier type</label>
-          <select id="supplierType" required>
-            <option value="Manufacturer">Manufacturer</option>
-            <option value="Distributor">Distributor</option>
-            <option value="Logistics">Logistics Partner</option>
-          </select>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 4px;">
+            <div class="form-group">
+              <label for="email">Contact Email</label>
+              <input type="email" id="email" placeholder="Example: contact@greenleaf.example" required>
+            </div>
 
-          <label for="address">Address</label>
-          <textarea id="address" rows="2" placeholder="12 Farm Road, Anantapur, IN" required></textarea>
+            <div class="form-group">
+              <label for="phone">Phone Number</label>
+              <input type="tel" id="phone" placeholder="Example: 9990001111" required>
+            </div>
+          </div>
 
-          <button type="submit" class="btn btn-primary btn-block">Add supplier</button>
+          <div class="form-group" style="margin-top: 4px;">
+            <label for="supplierType">Supplier Operational Type</label>
+            <select id="supplierType" required>
+              <option value="" disabled selected>Select node type...</option>
+              <option value="Manufacturer">Manufacturer</option>
+              <option value="Distributor">Distributor</option>
+              <option value="Logistics Partner">Logistics Partner</option>
+              <option value="Raw Material Supplier">Raw Material Supplier</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="margin-top: 4px;">
+            <label for="address">Registered Address</label>
+            <textarea id="address" placeholder="Provide full physical facilities address description..." required></textarea>
+          </div>
+
+          <!-- Action Controls Panel -->
+          <div style="margin-top: 16px; display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid var(--border-light); padding-top: 16px;">
+            <button type="button" class="btn btn-secondary-outline" onclick="document.getElementById('addSupplierForm').reset()">Clear Form</button>
+            <button type="submit" class="btn">Register Supplier Profile</button>
+          </div>
         </form>
+        <div id="formFeedback" style="margin-top: 16px;"></div>
       </div>
 
-      <div class="card">
-        <h2>All suppliers</h2>
-        <div id="supplierList"><p class="empty-state">Loading…</p></div>
+      <!-- Panel 2: Polished Dynamic Supplier Directory Cards Panel -->
+      <div class="card" style="display: flex; flex-direction: column;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <h2 style="margin-bottom: 0;">Active Supplier Profiles</h2>
+          <span id="supplierCount" class="badge badge-secondary" style="font-size: 0.8rem; padding: 4px 10px;">0 Active</span>
+        </div>
+        
+        <!-- Scrollable list view container for professional grid layout profiles -->
+        <div id="suppliersCatalogContainer" style="overflow-y: auto; max-height: 600px; padding-right: 4px; display: flex; flex-direction: column; gap: 16px;">
+          <div class="empty-state">Loading active distribution networks...</div>
+        </div>
       </div>
+
     </div>
   </main>
 
+  <!-- Core Script Architectures -->
   <script src="js/config.js"></script>
   <script src="js/api.js"></script>
-  <script src="js/suppliers.js"></script>
+  <script>
+    // Direct match handling with your unique JSON array payload from getSuppliers
+    async function fetchSuppliersDirectory() {
+      const displayContainer = document.getElementById("suppliersCatalogContainer");
+      const counterNode = document.getElementById("supplierCount");
+      
+      try {
+        const response = await api.get("/getSuppliers");
+        
+        // Safety switch handling direct recordset array mapping layouts
+        const suppliers = Array.isArray(response) ? response : [];
+        counterNode.textContent = `${suppliers.length} Active`;
+
+        if (suppliers.length === 0) {
+          displayContainer.innerHTML = `<div class="empty-state">No registered supplier channels active in current network clusters.</div>`;
+          return;
+        }
+
+        // Generate clean structural metadata profile components matching your second dashboard reference style
+        displayContainer.innerHTML = suppliers.map(s => `
+          <div class="card" style="margin-bottom: 0; padding: 20px; border-left: 4px solid var(--primary-blue); background-color: #fafbfc;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+              <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700; color: #0f172a;">${s.SupplierName || "Unnamed Vendor"}</h3>
+              <span class="badge badge-info" style="font-size: 0.7rem;">${s.SupplierType || "Node Vendor"}</span>
+            </div>
+            
+            <div class="supplier-item-meta">
+              <div><span class="label-meta">ID:</span> <span class="mono">${s.SupplierId || s.id || "—"}</span></div>
+              <div><span class="label-meta">Email:</span> <span>${s.Email || "—"}</span></div>
+              <div><span class="label-meta">Phone:</span> <span>${s.Phone || "—"}</span></div>
+              <div><span class="label-meta">Address:</span> <span style="font-style: italic; color: #334155;">${s.Address || "—"}</span></div>
+            </div>
+          </div>
+        `).join("");
+
+      } catch (error) {
+        console.error(error);
+        displayContainer.innerHTML = `<div class="notice-error">Ledger mapping dropped. Failed to poll core metadata directory files.</div>`;
+      }
+    }
+
+    // Capture standard form collection and post block payload structures safely
+    async function handleSupplierRegistration(event) {
+      event.preventDefault();
+      const feedback = document.getElementById("formFeedback");
+      
+      const payload = {
+        supplierId: document.getElementById("supplierId").value.trim(),
+        supplierName: document.getElementById("supplierName").value.trim(),
+        email: document.getElementById("email").value.trim(),
+        phone: document.getElementById("phone").value.trim(),
+        supplierType: document.getElementById("supplierType").value,
+        address: document.getElementById("address").value.trim()
+      };
+
+      feedback.innerHTML = '<div style="color: var(--text-muted); font-size: 0.9rem;">Adding partner record block to database routing paths...</div>';
+
+      try {
+        // Direct integration alignment: links up cleanly with the addSupplier POST route mapping
+        const response = await api.post("/addSupplier", payload);
+        
+        if (response.success) {
+          feedback.innerHTML = `<div class="badge badge-success" style="display: block; text-align: center; padding: 10px; font-weight:600;">✅ Supplier Node Profile Successfully Recorded!</div>`;
+          document.getElementById("addSupplierForm").reset();
+          await fetchSuppliersDirectory();
+        } else {
+          feedback.innerHTML = `<div class="notice-error">${response.message || "Failed to finalize database record configuration life cycle."}</div>`;
+        }
+      } catch (error) {
+        console.error(error);
+        feedback.innerHTML = `<div class="notice-error">Transaction write drop error: ${error.message}</div>`;
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", fetchSuppliersDirectory);
+  </script>
 </body>
 </html>
