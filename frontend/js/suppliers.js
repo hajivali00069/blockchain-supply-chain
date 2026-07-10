@@ -1,12 +1,10 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const form = document.getElementById("add-supplier-form");
-  const supplierList = document.getElementById("suppliers-list");
-  const noticeContainer = document.getElementById("notice-container");
+  const form = document.getElementById("supplierForm");
+  const supplierList = document.getElementById("supplierList");
+  const noticeContainer = document.getElementById("formNotice");
 
-  // Load existing suppliers when page opens
   async function loadSuppliers() {
     try {
-      // CHANGED: Pointing to the clean Azure Function default GET route
       const suppliers = await api.get("/getSuppliers");
       
       if (!suppliers || suppliers.length === 0) {
@@ -26,11 +24,12 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
       `).join("");
     } catch (error) {
-      showNotice(noticeContainer, `Could not load suppliers: ${error.message}`, "error");
+      if (noticeContainer) {
+        showNotice(noticeContainer, `Could not load suppliers: ${error.message}`, "error");
+      }
     }
   }
 
-  // Handle Form Submission
   if (form) {
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -45,13 +44,16 @@ document.addEventListener("DOMContentLoaded", () => {
       };
 
       try {
-        // CHANGED: Pointing to the clean Azure Function default POST route
         const result = await api.post("/addSupplier", supplierData);
-        showNotice(noticeContainer, result.message || "Supplier added successfully!", "success");
+        if (noticeContainer) {
+          showNotice(noticeContainer, result.message || "Supplier added successfully!", "success");
+        }
         form.reset();
         loadSuppliers();
       } catch (error) {
-        showNotice(noticeContainer, `Request failed: ${error.message}`, "error");
+        if (noticeContainer) {
+          showNotice(noticeContainer, `Request failed: ${error.message}`, "error");
+        }
       }
     });
   }
