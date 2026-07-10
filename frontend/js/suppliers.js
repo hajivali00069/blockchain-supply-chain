@@ -1,54 +1,60 @@
-async function loadSuppliers() {
-  const listEl = document.getElementById("supplierList");
-  try {
-    const { suppliers } = await api.get("/suppliers");
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("add-supplier-form");
+  const supplierList = document.getElementById("suppliers-list");
+  const noticeContainer = document.getElementById("notice-container");
 
-    if (!suppliers || suppliers.length === 0) {
-      listEl.innerHTML = `<p class="empty-state">No suppliers added yet.</p>`;
-      return;
+  // Load existing suppliers when page opens
+  async function loadSuppliers() {
+    try {
+      // CHANGED: Pointing to the clean Azure Function default GET route
+      const suppliers = await api.get("/getSuppliers");
+      
+      if (!suppliers || suppliers.length === 0) {
+        supplierList.innerHTML = '<p class="text-muted">No suppliers registered yet.</p>';
+        return;
+      }
+
+      supplierList.innerHTML = suppliers.map(s => `
+        <div class="card mb-3">
+          <div class="card-body">
+            <h5 class="card-title">${s.SupplierName} <span class="badge bg-secondary text-capitalize">${s.SupplierType}</span></h5>
+            <p class="card-text mb-1"><strong>ID:</strong> ${s.SupplierId}</p>
+            <p class="card-text mb-1"><strong>Email:</strong> ${s.Email || '-'}</p>
+            <p class="card-text mb-1"><strong>Phone:</strong> ${s.Phone || '-'}</p>
+            <p class="card-text mb-0"><strong>Address:</strong> ${s.Address || '-'}</p>
+          </div>
+        </div>
+      `).join("");
+    } catch (error) {
+      showNotice(noticeContainer, `Could not load suppliers: ${error.message}`, "error");
     }
-
-    const rows = suppliers.map(s => `
-      <tr>
-        <td class="mono">${s.SupplierId}</td>
-        <td>${s.SupplierName}</td>
-        <td>${s.SupplierType}</td>
-        <td>${s.Email}</td>
-      </tr>
-    `).join("");
-
-    listEl.innerHTML = `
-      <table>
-        <thead><tr><th>Supplier ID</th><th>Name</th><th>Type</th><th>Email</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-    `;
-  } catch (err) {
-    listEl.innerHTML = `<div class="notice notice-error">Could not load suppliers: ${err.message}</div>`;
   }
-}
 
-document.getElementById("supplierForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const noticeEl = document.getElementById("formNotice");
+  // Handle Form Submission
+  if (form) {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      
+      const supplierData = {
+        supplierId: document.getElementById("supplierId").value.trim(),
+        supplierName: document.getElementById("supplierName").value.trim(),
+        email: document.getElementById("email").value.trim(),
+        phone: document.getElementById("phone").value.trim(),
+        supplierType: document.getElementById("supplierType").value,
+        address: document.getElementById("address").value.trim()
+      };
 
-  const payload = {
-    supplierId: document.getElementById("supplierId").value.trim(),
-    supplierName: document.getElementById("supplierName").value.trim(),
-    email: document.getElementById("email").value.trim(),
-    phone: document.getElementById("phone").value.trim(),
-    supplierType: document.getElementById("supplierType").value,
-    address: document.getElementById("address").value.trim()
-  };
-
-  try {
-    await api.post("/suppliers", payload);
-    showNotice(noticeEl, "Supplier added successfully.", "success");
-    e.target.reset();
-    loadSuppliers();
-  } catch (err) {
-    showNotice(noticeEl, err.message, "error");
+      try {
+        // CHANGED: Pointing to the clean Azure Function default POST route
+        const result = await api.post("/addSupplier", supplierData);
+        showNotice(noticeContainer, result.message || "Supplier added successfully!", "success");
+        form.reset();
+        loadSuppliers();
+      } catch (error) {
+        showNotice(noticeContainer, `Request failed: ${error.message}`, "error");
+      }
+    });
   }
+
+  loadSuppliers();
 });
-
-loadSuppliers();
